@@ -27,6 +27,7 @@ export const signin = async (req, res) => {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email }).exec();
+    
     if (!user) {
       res.status(404).json({
         message: "Email không tồn tại",
@@ -41,6 +42,15 @@ export const signin = async (req, res) => {
       return;
     }
 
+    if (user) {
+      if (user.status != 1) {
+        res.status(404).json({
+          message: "Tài khoản đã bị khóa",
+        });
+        return;
+      }
+    }
+
     const token = jwt.sign({ email }, "Happyweekend", { expiresIn: "3h" });
 
     res.json({
@@ -52,6 +62,7 @@ export const signin = async (req, res) => {
         role: user.role,
         avatar: user.avatar,
         phone: user.phone,
+        token:token
       },
     });
   } catch (error) {

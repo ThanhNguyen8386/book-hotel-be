@@ -33,6 +33,10 @@ const UserSchema = new mongoose.Schema(
     },
     address:{
       type:String
+    },
+    status:{
+      type:Number,
+      default:1
     }
   },
   { timestamps: true }
