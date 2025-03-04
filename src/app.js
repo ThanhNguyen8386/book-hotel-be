@@ -11,7 +11,15 @@ app.use(cors());
 
 const URL = 'mongodb+srv://thanh:123@cluster0.qaeoa.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
 
-app.use(verifyToken)
+const excludedRoutes = ['/api/signin', '/api/signup', '/api/refresh']
+app.use((req, res, next)=>{
+  if (excludedRoutes.includes(req.path)) {
+    next()
+  }
+  else{
+    verifyToken(req, res, next)
+  }
+})
 
 mongoose
   .connect(URL)

@@ -1,3 +1,4 @@
+import { generateAccessToken, generateRefreshToken } from "../middlewares/checkAuth";
 import User from "../models/users";
 import jwt from "jsonwebtoken";
 
@@ -27,7 +28,7 @@ export const signin = async (req, res) => {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email }).exec();
-    
+
     if (!user) {
       res.status(404).json({
         message: "Email không tồn tại",
@@ -51,8 +52,15 @@ export const signin = async (req, res) => {
       }
     }
 
-    const token = jwt.sign({ email }, "Happyweekend", { expiresIn: "3h" });
-
+    const token = generateAccessToken({ email })
+    const refreshToken = generateRefreshToken({ email })
+    // res.cookie('refreshToken', refreshToken, {
+    //   httpOnly: true, secure: false
+    // })
+    // res.cookie("token", token, {
+    //   httpOnly: true,
+    //   secure: false, // Đổi thành true khi dùng HTTPS
+    // });
     res.json({
       token,
       user: {
@@ -62,7 +70,8 @@ export const signin = async (req, res) => {
         role: user.role,
         avatar: user.avatar,
         phone: user.phone,
-        token:token
+        token: token,
+        refreshToken: refreshToken
       },
     });
   } catch (error) {
@@ -72,3 +81,20 @@ export const signin = async (req, res) => {
     });
   }
 };
+
+export const refreshToken = async (req, res) => {
+  const refreshToken = req.body.token;
+
+  if (!refreshToken) return res.status(401).json({ message: "Không có Refresh Token" })
+
+  jwt.verify(refreshToken, "Happyweekend", (err, user) => {
+    if (err) return res.status(403).json({ message: "Refresh Token không hợp lệ" })
+
+    const newAccessToken = generateAccessToken({ email: user.email })
+    res.json({ accessToken: newAccessToken })  // Trả về Access Token mới
+  })
+}
+// export const logOut = async (req, res) => {
+//   refreshTokens = refreshTokens.filter(token => token !== req.body.token)
+//   res.json({ message: "Đã đăng xuất" })
+// }

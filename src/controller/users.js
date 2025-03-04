@@ -20,6 +20,8 @@ export const create = async (req, res) => {
 
 export const getAll = async (req, res) => {
   try {
+    console.log(req.cookies);
+    
     const users = await User.find().exec();
 
     res.json(users);

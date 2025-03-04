@@ -47,18 +47,27 @@ export const isAdmin = async (req, res, next) => {
 export const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization
   const token = authHeader && authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null
-  
-  if (!token) return res.status(401).json({ message: "Token không tồn tại" })
+
+  if (!token) next()
+    // if (!token) return res.status(401).json({ message: "Token không tồn tại" })
 
   jwt.verify(token, "Happyweekend", (err, decoded) => {
     if (err) {
       if (err.name === "TokenExpiredError") {
-        return res.status(401).json({ message: "Token hết hạn" })  
+        return res.status(401).json({ message: "Token hết hạn" })
       }
-      return res.status(403).json({ message: "Token không hợp lệ" })  
+      return res.status(403).json({ message: "Token không hợp lệ" })
     }
 
     req.user = decoded
   })
   next()
+}
+
+export const generateAccessToken = (user) => {
+  return jwt.sign(user, "Happyweekend", { expiresIn: '1m' })  // Token hết hạn sau 15 phút
+}
+
+export const generateRefreshToken = (user) => {
+  return jwt.sign(user, "Happyweekend", { expiresIn: '7d' })  // Refresh Token có hiệu lực 7 ngày
 }
