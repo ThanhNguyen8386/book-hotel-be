@@ -45,23 +45,26 @@ export const isAdmin = async (req, res, next) => {
 };
 
 export const verifyToken = (req, res, next) => {
+  console.log(req.path)
+
   const authHeader = req.headers.authorization
   const token = authHeader && authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null
 
-  if (!token) next()
-    // if (!token) return res.status(401).json({ message: "Token không tồn tại" })
-
-  jwt.verify(token, "Happyweekend", (err, decoded) => {
-    if (err) {
-      if (err.name === "TokenExpiredError") {
-        return res.status(401).json({ message: "Token hết hạn" })
+  if (!token) { next() }
+  // if (!token) return res.status(401).json({ message: "Token không tồn tại" })
+  else {
+    jwt.verify(token, "Happyweekend", (err, decoded) => {
+      if (err) {
+        if (err.name === "TokenExpiredError") {
+          return res.status(401).json({ message: "Token hết hạn" })
+        }
+        return res.status(403).json({ message: "Token không hợp lệ" })
       }
-      return res.status(403).json({ message: "Token không hợp lệ" })
-    }
 
-    req.user = decoded
-  })
-  next()
+      req.user = decoded
+    })
+    next()
+  }
 }
 
 export const generateAccessToken = (user) => {

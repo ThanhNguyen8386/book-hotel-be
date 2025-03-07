@@ -84,11 +84,10 @@ export const signin = async (req, res) => {
 
 export const refreshToken = async (req, res) => {
   const refreshToken = req.body.token;
-
   if (!refreshToken) return res.status(401).json({ message: "Không có Refresh Token" })
 
   jwt.verify(refreshToken, "Happyweekend", (err, user) => {
-    if (err) return res.status(403).json({ message: "Refresh Token không hợp lệ" })
+    if (err) return res.status(403).json({ message: "Refresh Token hết hạn, vui lòng đăng nhập lại" })
 
     const newAccessToken = generateAccessToken({ email: user.email })
     res.json({ accessToken: newAccessToken })  // Trả về Access Token mới
