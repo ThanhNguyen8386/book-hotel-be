@@ -2,13 +2,18 @@ import Room from "../models/room"
 import Comment from "../models/comments"
 import slugify from "slugify"
 import DateBooked from "../models/dateBooked"
+import Category from '../models/categories'
+import comments from "../models/comments"
+
 
 export const creat = async (req, res) => {
     req.body.slug = slugify(req.body.name)
+
     try {
         const add = await Room(req.body).save()
         res.json(add)
     } catch (error) {
+        console.log(error);
 
     }
 }
@@ -27,6 +32,7 @@ export const getOne = async (req, res) => {
         const room = await Room.find({ slug: req.params.slug }).populate('category').exec()
         res.json(room[0])
     } catch (error) {
+        console.log(error);
 
     }
 }
@@ -37,6 +43,7 @@ export const remove = async (req, res) => {
         const deleteRomm = await Room.findOneAndDelete({ _id: req.params.id }).exec()
         res.json(deleteRomm)
     } catch (error) {
+        console.log(error);
 
     }
 }
@@ -47,7 +54,7 @@ export const update = async (req, res) => {
         console.log(newRoom);
         res.json(newRoom)
     } catch (error) {
-
+        console.log(error);
     }
 }
 
@@ -59,8 +66,8 @@ function areTwoDateTimeRangesOverlapping(incommingDateTimeRange, existingDateTim
 function areManyDateTimeRangesOverlapping(incommingDateTimeRange, existingDateTimeRanges) {
     return existingDateTimeRanges.some((existingDateTimeRange) => areTwoDateTimeRangesOverlapping(incommingDateTimeRange, existingDateTimeRange))
 }
-  
- 
+
+
 export const search = async (req, res) => {
     const { checkInDate, checkOutDate } = req.body;
 
@@ -103,14 +110,56 @@ export const search = async (req, res) => {
     }
 }
 
-export const read = async (req,res) => {
+export const read = async (req, res) => {
     try {
-        const room = await Room.findOne({slug: req.params.slug}).exec();
-        const comments = await Comment.find({room: room}).populate('room').select('-room').exec()
+        const room = await Room.findOne({ slug: req.params.slug }).exec();
+        const comments = await Comment.find({ room: room }).populate('room').select('-room').exec()
         res.json({
             comments
         });
     } catch (error) {
-        
+
+    }
+}
+
+export const getRoomByCategory = async (req, res) => {
+    try {
+        const { _id, slug, name, address } = await Category.findOne({ slug: req.params.slug });
+        const roomByCategory = await Room.find({
+            category: _id,
+            status: true
+        })
+        const roomIds = roomByCategory.map(item => item._id);
+        const reviews = await comments.find({ room: { $in: roomIds } })
+            .populate('user', 'name avatar')
+            .populate('room', 'name');
+        const listImageRoom = [];
+        const listRatings = [];
+        if (roomByCategory.length > 0) {
+            roomByCategory.forEach((item, index) => {
+                item.image.forEach((e) => {
+                    listImageRoom.push(e)
+                })
+                listRatings.push(...item.ratings);
+            })
+        }
+        const _roomByCate = [...roomByCategory];
+        const rating = _roomByCate.reduce((accumulator, currentValue) => {
+            return accumulator += +(currentValue.ratingAvg);
+        }, 0)
+        const data = {
+            listRatings: listRatings,
+            rating: rating,
+            address: address,
+            images: listImageRoom,
+            name: name,
+            slug: slug,
+            _id: _id,
+            roomList: roomByCategory,
+            reviews: reviews
+        }
+        res.json(data)
+    } catch (error) {
+        console.log(error);
     }
 }

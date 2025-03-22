@@ -54,13 +54,6 @@ export const signin = async (req, res) => {
 
     const token = generateAccessToken({ email })
     const refreshToken = generateRefreshToken({ email })
-    // res.cookie('refreshToken', refreshToken, {
-    //   httpOnly: true, secure: false
-    // })
-    // res.cookie("token", token, {
-    //   httpOnly: true,
-    //   secure: false, // Đổi thành true khi dùng HTTPS
-    // });
     res.json({
       token,
       user: {

@@ -1,40 +1,38 @@
-import mongoose,{Schema, ObjectId} from "mongoose";
-
-
+import mongoose, { Schema, ObjectId } from "mongoose";
 
 const RomSchema = Schema({
-    name:{
-        type:String,
+    name: {
+        type: String,
         // required:true,
         minLength: 5
     },
-    slug:{
-        type:String,
+    slug: {
+        type: String,
         // required:true,
-        lowercase:true,
-        unique:true,
-        index:true
+        lowercase: true,
+        unique: true,
+        index: true
     },
-    image:{
+    image: {
         type: [],
     },
     price: [{
-        brand:Number,
-        title:String,
-        value:Number
+        brand: Number,
+        title: String,
+        value: Number
     }],
-    description:{
+    description: {
         type: String,
         // required: true,
-        minLength:5
+        minLength: 5
     },
-    status:{
-        type:Boolean,
+    status: {
+        type: Boolean,
         default: true
     },
-    category:{
+    category: {
         type: ObjectId,
-        ref:"Category"
+        ref: "Category"
     },
     date: {
         type: ObjectId,
@@ -44,7 +42,7 @@ const RomSchema = Schema({
         type: ObjectId,
         ref: "Facilities"
     }
-}, {timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true }})
+}, { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } })
 
 // list rating.
 RomSchema.virtual("ratings", {
@@ -53,17 +51,17 @@ RomSchema.virtual("ratings", {
     localField: "_id"
 });
 
-RomSchema.pre(/^find/, function(next) {
+RomSchema.pre(/^find/, function (next) {
     this.populate(["ratings", "listFacility"]);
-
     next();
 });
 
-RomSchema.virtual("ratingAvg").get(function() {
-    let totalStar = 0;
-    this.ratings.forEach(item => totalStar += +item.star);
-
-    return ((totalStar / this.ratings.length) || 0).toFixed(1);
+RomSchema.virtual("ratingAvg").get(function () {
+    if (this.ratings) {
+        let totalStar = 0;
+        this.ratings.forEach(item => totalStar += +item.star);
+        return ((totalStar / this.ratings.length) || 0).toFixed(1);
+    }
 })
 
 RomSchema.virtual("listFacility", {
@@ -72,4 +70,4 @@ RomSchema.virtual("listFacility", {
     localField: "_id"
 })
 
-export default mongoose.model("Room",RomSchema)
+export default mongoose.model("Room", RomSchema)

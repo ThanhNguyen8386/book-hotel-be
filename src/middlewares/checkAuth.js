@@ -45,7 +45,6 @@ export const isAdmin = async (req, res, next) => {
 };
 
 export const verifyToken = (req, res, next) => {
-  console.log(req.path)
 
   const authHeader = req.headers.authorization
   const token = authHeader && authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null
@@ -68,7 +67,7 @@ export const verifyToken = (req, res, next) => {
 }
 
 export const generateAccessToken = (user) => {
-  return jwt.sign(user, "Happyweekend", { expiresIn: '1m' })  // Token hết hạn sau 15 phút
+  return jwt.sign(user, "Happyweekend", { expiresIn: '15m' })  // Token hết hạn sau 15 phút
 }
 
 export const generateRefreshToken = (user) => {
