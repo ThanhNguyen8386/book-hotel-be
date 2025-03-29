@@ -60,7 +60,8 @@ export const update = async (req, res) => {
 
 // check trùng lặp thời gian
 function areTwoDateTimeRangesOverlapping(incommingDateTimeRange, existingDateTimeRange) {
-    return incommingDateTimeRange.start < existingDateTimeRange.end && incommingDateTimeRange.end > existingDateTimeRange.start
+    return incommingDateTimeRange.start < existingDateTimeRange.end
+        && incommingDateTimeRange.end > existingDateTimeRange.start
 }
 
 function areManyDateTimeRangesOverlapping(incommingDateTimeRange, existingDateTimeRanges) {
@@ -161,5 +162,32 @@ export const getRoomByCategory = async (req, res) => {
         res.json(data)
     } catch (error) {
         console.log(error);
+    }
+}
+
+export const getRoomAvailabe = async (req, res) => {
+    try {
+        const { dateFrom, dateTo, categoryId } = req.body;
+
+        if (!dateFrom || !dateTo || !categoryId) {
+            return res.status(400).json({ message: "Thiếu thông tin dateFrom, dateTo hoặc categoryId" });
+        }
+
+        // Lấy danh sách phòng đã được đặt trong khoảng thời gian người dùng chọn
+        const bookedRooms = await DateBooked.find({
+            $or: [
+                { dateFrom: { $lte: dateTo }, dateTo: { $gte: dateFrom } } // Phòng đã được đặt trong khoảng thời gian chọn
+            ]
+        }).distinct("room"); // Lấy danh sách ID phòng đã bị đặt
+
+        // Tìm các phòng thuộc category nhưng chưa bị đặt
+        const availableRooms = await Room.find({
+            _id: { $nin: bookedRooms }, // Loại bỏ phòng đã bị đặt
+            category: categoryId // Chỉ lấy phòng thuộc category được chọn
+        });
+
+        res.json(availableRooms);
+    } catch (error) {
+        res.status(500).json({ message: "Lỗi server", error: error.message });
     }
 }

@@ -236,7 +236,6 @@ export const checkUserBookRoom = async (req, res) => {
 export const getRevenue = async (req, res) => {
     const { type, year, month } = req.body;
     let payload = {};
-    console.log(type, year, month);
     const getDateRange = (type, month, year) => {
         switch (type) {
             case "MONTH":
