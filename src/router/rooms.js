@@ -1,5 +1,5 @@
 const {Router} = require('express')
-const { getAll, creat, getOne, remove, update, search, read, getRoomByCategory, getRoomAvailabe } = require('../controller/rooms')
+const { getAll, creat, getOne, remove, update, search, read, getRoomByCategory, getRoomAvailabe, availableCategory } = require('../controller/rooms')
 
 const router = Router()
 
@@ -13,5 +13,6 @@ router.post("/rooms/search", search)
 router.get("/room/:slug",read)
 router.get("/roomsbyCategory/:slug",getRoomByCategory)
 router.post("/roomsAvailabe",getRoomAvailabe)
+router.post("/availableCategory",availableCategory)
 
 module.exports = router

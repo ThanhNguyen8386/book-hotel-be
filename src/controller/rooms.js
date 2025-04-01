@@ -191,3 +191,49 @@ export const getRoomAvailabe = async (req, res) => {
         res.status(500).json({ message: "Lỗi server", error: error.message });
     }
 }
+
+export const availableCategory = async (req, res) => {
+    try {
+        const { startDate, endDate } = req.body;
+        if (!startDate || !endDate) {
+            return res.status(400).json({ message: "Vui lòng cung cấp ngày bắt đầu và ngày kết thúc" });
+        }
+
+        // Chuyển đổi startDate, endDate sang ISODate
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+
+        // Lấy danh sách các room đã được đặt trong khoảng thời gian
+        const bookedRooms = await DateBooked.find({
+            $or: [
+                { dateFrom: { $lte: end }, dateTo: { $gte: start } }, // Khoảng thời gian bị chồng lấn
+            ],
+        }).distinct("room");
+
+        // Lọc ra các phòng chưa bị đặt
+        const availableRooms = await Room.find({
+            _id: { $nin: bookedRooms }, // Loại bỏ các phòng đã bị đặt
+        });
+
+        // Nhóm phòng theo category và lấy ảnh phòng
+        const categories = await Category.find();
+        const result = categories.map(category => {
+            const roomsInCategory = availableRooms.filter(room => room.category.toString() === category._id.toString());
+            return roomsInCategory.length > 0
+                ? {
+                    category: category.name,
+                    categoryImage: category.image, // Giả sử category có trường ảnh
+                    rooms: roomsInCategory.map(room => ({
+                        roomName: room.name,
+                        roomImage: room.image // Giả sử room có trường ảnh
+                    }))
+                }
+                : null;
+        }).filter(item => item !== null); // Chỉ lấy category có phòng khả dụng
+
+        res.json(result);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Lỗi server" });
+    }
+}
