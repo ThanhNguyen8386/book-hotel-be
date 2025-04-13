@@ -8,7 +8,7 @@ import order from '../models/order';
 
 // import Basic from '../models/basic'
 export const getall = async (req, res) => {
-    const list = await Order.find().populate('room').select().exec().sort({ createdAt: -1 })
+    const list = await Order.find().sort({ createdAt: -1 }).populate('room').select().exec()
     res.json(list)
 }
 export const orderroom = async (req, res) => {
