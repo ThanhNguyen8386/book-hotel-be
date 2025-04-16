@@ -52,7 +52,7 @@ export const signin = async (req, res) => {
       }
     }
 
-    const token = generateAccessToken({ email })
+    const token = generateAccessToken({ email: user.email, role: +user.role })
     const refreshToken = generateRefreshToken({ email })
     res.json({
       token,
@@ -60,7 +60,7 @@ export const signin = async (req, res) => {
         name: user.name,
         email: user.email,
         _id: user._id,
-        role: user.role,
+        role: +user.role,
         avatar: user.avatar,
         phone: user.phone,
         token: token,

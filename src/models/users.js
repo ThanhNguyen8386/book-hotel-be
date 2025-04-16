@@ -25,18 +25,19 @@ const UserSchema = new mongoose.Schema(
       default: process.env.DEFAULT_IMG,
     },
     role: {
-      default: 0,
+      type: String,
+      enum: [0, 1],
+      default: 0
+    },
+    gender: {
+      type: String
+    },
+    address: {
+      type: String
+    },
+    status: {
       type: Number,
-    },
-    gender:{
-      type:String
-    },
-    address:{
-      type:String
-    },
-    status:{
-      type:Number,
-      default:1
+      default: 1
     }
   },
   { timestamps: true }

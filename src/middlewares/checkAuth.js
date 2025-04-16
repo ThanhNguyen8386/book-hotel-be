@@ -66,6 +66,17 @@ export const verifyToken = (req, res, next) => {
   }
 }
 
+export const roleMiddleware = (roles) => {
+  return (req, res, next) => {
+    console.log(roles.includes(req.user.role));
+
+    if (roles.includes(req.user.role)) {
+      next();
+    }
+    else return res.status(403).json({ message: 'Access denied' });
+  };
+};
+
 export const generateAccessToken = (user) => {
   return jwt.sign(user, "Happyweekend", { expiresIn: '15m' })  // Token hết hạn sau 15 phút
 }
