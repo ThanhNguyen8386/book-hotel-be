@@ -52,8 +52,8 @@ export const signin = async (req, res) => {
       }
     }
 
-    const token = generateAccessToken({ email: user.email, role: +user.role })
-    const refreshToken = generateRefreshToken({ email })
+    const token = generateAccessToken({ email: user.email, role: user.role })
+    const refreshToken = generateRefreshToken({ email: user.email, role: user.role })
     res.json({
       token,
       user: {
@@ -82,7 +82,7 @@ export const refreshToken = async (req, res) => {
   jwt.verify(refreshToken, "Happyweekend", (err, user) => {
     if (err) return res.status(403).json({ message: "Refresh Token hết hạn, vui lòng đăng nhập lại" })
 
-    const newAccessToken = generateAccessToken({ email: user.email })
+    const newAccessToken = generateAccessToken({ email: user.email, role: +user.role })
     res.json({ accessToken: newAccessToken })  // Trả về Access Token mới
   })
 }
