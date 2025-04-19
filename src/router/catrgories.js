@@ -4,12 +4,12 @@ import { roleMiddleware, verifyToken } from '../middlewares/checkAuth'
 
 const router = Router()
 
-router.get("/categories", verifyToken, roleMiddleware([1]), getall)
+router.get("/categories", getall)
 router.get("/getAllCategoryWithImage", getAllCategoryWithImage)
 router.get("/category/:slug", getone)
-router.delete("/category/:id", remove)
-router.put("/category/:id/edit", update)
-router.post("/categories", creat)
+router.delete("/category/:id", verifyToken, roleMiddleware([1]), remove)
+router.put("/category/:id/edit", verifyToken, roleMiddleware([1]), update)
+router.post("/categories", verifyToken, roleMiddleware([1]), creat)
 router.get('/categorys/:slug', read)
 
 

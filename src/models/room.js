@@ -17,7 +17,7 @@ const RomSchema = Schema({
         type: [],
     },
     price: [{
-        brand: Number,
+        brand: String, enum: ['overnight', 'daily', 'hourly'],
         title: String,
         value: Number
     }],
