@@ -12,6 +12,13 @@ export const getone = async (req, res) => {
     res.json(Cate)
 }
 
+export const detail = async (req, res) => {
+    console.log(req.params);
+    
+    const Cate = await Category.findById({ _id: req.params.id }).exec()
+    res.json(Cate)
+}
+
 export const creat = async (req, res) => {
     req.body.slug = slugify(req.body.name)
     try {

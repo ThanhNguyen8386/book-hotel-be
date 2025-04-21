@@ -33,21 +33,11 @@ export const detailorder = async (req, res) => {
     // const basic = await Basic.find({_id: room.basic}).exec()
     // const status = await Status.find({_id: order.status}).exec()
 
-    let resultOrder = {
-        name: order.name,
-        phone: order.phone,
-        email: order.email,
-        total: order.total,
-        checkins: order.checkins,
-        checkouts: order.checkouts,
-        statusorder: order.statusorder,
-        methodpay: order.methodpay,
-        voucher: order.voucher
-    };
+    let resultOrder = order
     if (order.user) resultOrder = { ...resultOrder, user: order.user.toString() };
 
     res.json({
-        order: resultOrder,
+        order: order,
         room,
         // status,
         // basic
