@@ -5,6 +5,7 @@ import { json } from 'express';
 import { search } from './rooms';
 import User from '../models/users';
 import order from '../models/order';
+import voucher2 from '../models/voucher2';
 
 // import Basic from '../models/basic'
 export const getall = async (req, res) => {
@@ -777,89 +778,122 @@ export const mostUserRevenue = async (req, res) => {
     }
 }
 
+// server/controllers/order.js
 export const calculateBooking = async (req, res) => {
     try {
-        const { bookingType, checkIn, checkOut, roomId, voucher } = req.body;
-
-        // Validate input
-        if (!bookingType || !checkIn || !checkOut || !roomId) {
-            return res.status(400).json({ message: 'Missing required fields' });
-        }
-
-        // Tìm phòng và populate category để lấy address
-        const room = await Room.findById(roomId).populate('category');
-        if (!room) {
-            return res.status(404).json({ message: 'Room not found' });
-        }
-
-        // Lấy giá phòng theo loại đặt phòng
-        const priceObj = room.price.find((p) => p.brand == bookingType);
-        if (!priceObj) {
-            return res.status(400).json({ message: 'Invalid booking type for this room' });
-        }
-
-        // Tính thời gian đặt phòng
-        const checkInDate = new Date(checkIn);
-        const checkOutDate = new Date(checkOut);
-        const durationMs = checkOutDate - checkInDate;
-
-        if (durationMs <= 0) {
-            return res.status(400).json({ message: 'Check-Out must be after Check-In' });
-        }
-
-        let originalPrice = 0;
-        let duration = 0;
-        let durationText = '';
-        const pricePerUnit = priceObj.value;
-
-        if (bookingType === 'hourly') {
-            duration = Math.ceil(durationMs / (1000 * 60 * 60)); // Tính số giờ, làm tròn lên
-            originalPrice = duration * pricePerUnit;
-            durationText = `${duration} giờ`;
-        } else if (bookingType === 'daily') {
-            duration = Math.ceil(durationMs / (1000 * 60 * 60 * 24)); // Tính số ngày, làm tròn lên
-            originalPrice = duration * pricePerUnit;
-            durationText = `${duration} ngày`;
-        } else if (bookingType == 'overnight') {
-            duration = 1; // Cố định 1 ngày cho qua đêm
-            originalPrice = pricePerUnit;
-            durationText = '1 ngày';
-        }
-
-        // Tính giảm giá từ voucher (giả sử voucher là % giảm, ví dụ: "10" nghĩa là giảm 10%)
-        let discountAmount = 0;
-        if (voucher) {
-            const discountPercent = parseFloat(voucher);
-            if (!isNaN(discountPercent)) {
-                discountAmount = (originalPrice * discountPercent) / 100;
-            }
-        }
-
-        // Tính tổng tiền
-        const totalPrice = originalPrice - discountAmount;
-
-        // Trả về thông tin phòng và đặt phòng
-        res.status(200).json({
-            message: 'Calculation successful',
-            room: {
-                roomId: room._id,
-                name: room.name,
-                bookingType,
-                pricePerUnit: priceObj.value,
-                image: room.image.length > 0 ? room.image[0] : '', // Lấy ảnh đầu tiên hoặc chuỗi rỗng
-                address: room.category ? room.category.address : 'N/A', // Lấy address từ category
-            },
-            bookingDetails: {
-                checkIn: checkInDate,
-                checkOut: checkOutDate,
-                voucher,
-                originalPrice,
-                discountAmount,
-                totalPrice,
-                duration: durationText, // Trả về "X ngày" hoặc "X giờ"
-            },
+      const { bookingType, checkIn, checkOut, roomId, voucherCode } = req.body;
+  
+      // Validate input
+      if (!bookingType || !checkIn || !checkOut || !roomId) {
+        return res.status(400).json({ message: 'Missing required fields' });
+      }
+  
+      // Tìm phòng và populate category để lấy address
+      const room = await Room.findById(roomId).populate('category');
+      if (!room) {
+        return res.status(404).json({ message: 'Room not found' });
+      }
+  
+      // Lấy giá phòng theo loại đặt phòng
+      const priceObj = room.price.find((p) => p.brand === bookingType);
+      if (!priceObj) {
+        return res.status(400).json({ message: 'Invalid booking type for this room' });
+      }
+  
+      // Tính thời gian đặt phòng
+      const checkInDate = new Date(checkIn);
+      const checkOutDate = new Date(checkOut);
+      const durationMs = checkOutDate - checkInDate;
+  
+      if (durationMs <= 0) {
+        return res.status(400).json({ message: 'Check-out must be after check-in' });
+      }
+  
+      let originalPrice = 0;
+      let duration = 0;
+      let durationText = '';
+      const pricePerUnit = priceObj.value;
+  
+      if (bookingType === 'hourly') {
+        duration = Math.ceil(durationMs / (1000 * 60 * 60)); // Số giờ, làm tròn lên
+        originalPrice = duration * pricePerUnit;
+        durationText = `${duration} giờ`;
+      } else if (bookingType === 'daily') {
+        duration = Math.ceil(durationMs / (1000 * 60 * 60 * 24)); // Số ngày, làm tròn lên
+        originalPrice = duration * pricePerUnit;
+        durationText = `${duration} ngày`;
+      } else if (bookingType === 'overnight') {
+        duration = 1; // Cố định 1 ngày
+        originalPrice = pricePerUnit;
+        durationText = '1 ngày';
+      }
+  
+      // Xử lý voucher
+      let discountAmount = 0;
+      let voucherDetails = null;
+      if (voucherCode) {
+        const voucher = await voucher2.findOne({
+          code: voucherCode.toUpperCase(),
+          applicableRooms: roomId,
+          isActive: true,
+          quantity: { $gt: 0 },
+          startDate: { $lte: checkInDate },
+          endDate: { $gte: checkOutDate },
         });
+  
+        if (!voucher) {
+          return res.status(400).json({ message: 'Invalid or expired voucher' });
+        }
+  
+        // Tính giảm giá
+        if (voucher.discountType === 'percentage') {
+          discountAmount = (originalPrice * voucher.discountValue) / 100;
+        } else if (voucher.discountType === 'fixed') {
+          discountAmount = voucher.discountValue;
+        }
+  
+        // Đảm bảo giảm giá không vượt quá giá gốc
+        discountAmount = Math.min(discountAmount, originalPrice);
+  
+        // Giảm số lượng voucher
+        voucher.quantity -= 1;
+        if (voucher.quantity === 0) {
+          voucher.isActive = false;
+        }
+        await voucher.save();
+  
+        voucherDetails = {
+          code: voucher.code,
+          discountType: voucher.discountType,
+          discountValue: voucher.discountValue,
+        };
+      }
+  
+      // Tính tổng tiền
+      const totalPrice = originalPrice - discountAmount;
+  
+      // Trả về thông tin phòng và đặt phòng
+      res.status(200).json({
+        message: 'Calculation successful',
+        room: {
+          roomId: room._id,
+          name: room.name,
+          bookingType,
+          pricePerUnit: priceObj.value,
+          image: room.image.length > 0 ? room.image[0] : '',
+          address: room.category ? room.category.address : 'N/A',
+        },
+        bookingDetails: {
+          checkIn: checkInDate,
+          checkOut: checkOutDate,
+          voucher: voucherDetails,
+          originalPrice,
+          discountAmount,
+          totalPrice,
+          duration: durationText,
+        },
+      });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+      res.status(500).json({ message: 'Server error', error: error.message });
     }
-};
+  };
