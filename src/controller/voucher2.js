@@ -99,3 +99,13 @@ export const getAllVoucher = async (req, res) => {
     const data = await voucher2.find();
     res.json(data);
 }
+
+export const detailVoucher = async (req, res) => {
+    try {
+        const {voucherCode} = req.params;        
+        const data = await voucher2.findOne({code: voucherCode.toUpperCase() });
+        res.json(data);
+    } catch (error) {
+        console.log(error);
+    }
+}
