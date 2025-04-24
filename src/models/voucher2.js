@@ -52,19 +52,12 @@ const voucherSchema = new mongoose.Schema({
         ref: 'Room',
         required: [true, 'Applicable rooms are required'],
     }],
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
-    updatedAt: {
-        type: Date,
-        default: Date.now,
-    },
     image: {
         type: String,
         default: "http://res.cloudinary.com/dkhutgvlb/image/upload/v1739795711/xwfbzfrvi09g0h3sxwfs.jpg",
-    }
-});
+    },
+
+}, { timestamps: true });
 
 // Index để tìm kiếm code nhanh
 voucherSchema.index({ code: 1 }, { unique: true });

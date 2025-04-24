@@ -40,9 +40,9 @@ const orderSchema = Schema({
         type: ObjectId,
         ref:"DateBooked"
     },
-    voucher:{
+    voucherCode:{
         type:ObjectId,
-        ref:"Voucher"
+        ref:"Voucher2"
     },
     year: {
         type: String
@@ -51,10 +51,20 @@ const orderSchema = Schema({
         type: String,
     },
     duration: {
-        type: Number
+        type: String
     },
     methodpay:{
         type: String
+    },
+    bookingType:{
+        type: String,
+        required: true
+    },
+    discountAmount:{
+        type: Number
+    },
+    originalPrice:{
+        type: Number
     }
 }, {timestamps:true})
 

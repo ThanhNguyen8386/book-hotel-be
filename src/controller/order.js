@@ -11,33 +11,35 @@ export const getall = async (req, res) => {
     res.json(list)
 }
 export const orderroom = async (req, res) => {
-
-    // const add = await new Order(req.body).save()
-    // res.json(add)
     try {
-        const payload = { ...req.body };
+        let payload = { ...req.body };
+        if (typeof payload.voucherCode === "string" && payload.voucherCode.trim() === "") {
+            delete payload.voucherCode; // 👈 Xóa key nếu rỗng
+        } else {
+            // Nếu có giá trị thì xử lý voucher
+            const voucher = await voucher2.findById(payload.voucherCode);
+            if (voucher) {
+                voucher.quantity -= 1;
+                if (voucher.quantity === 0) {
+                    voucher.isActive = false;
+                }
+                await voucher.save();
+
+                payload.voucher = voucher._id; // 👈 Gán ID vào Order
+            }
+        }
+
         payload.month = new Date(payload.checkouts).getMonth() + 1;
         payload.year = new Date(payload.checkouts).getFullYear();
-        let duration = (((new Date(payload.checkouts).getTime() - new Date(payload.checkins)) / 1000) / 60) / 60;
-        payload.duration = duration;
         const add = await new Order(payload).save()
-        if (payload.voucherCode) {
-            const voucher = await voucher2.findOne({
-                code: payload.voucherCode.toUpperCase()
-            });
-            voucher.quantity -= 1;
-            if (voucher.quantity === 0) {
-                voucher.isActive = false;
-            }
-            await voucher.save();
-        }
         res.json(add)
     } catch (error) {
-        res.status(400).json([])
+        console.log(error);
+        return res.status(400).json([])
     }
 }
 export const detailorder = async (req, res) => {
-    const order = await Order.findOne({ _id: req.params.id }).populate("voucher").exec();
+    const order = await Order.findOne({ _id: req.params.id }).populate("voucherCode").exec();
     if (!order) {
         return res.json("không tìm thấy")
     }
@@ -63,12 +65,10 @@ export const update = async (req, res) => {
 }
 
 export const listUser = async (req, res) => {
-    const list = await Order.find({ user: req.params.user }).sort({ createdAt: -1 }).populate('room').select().exec()
-    // const room = await Room.findOne({_id: list._id})
+    const list = await Order.find({ user: req.params.user }).sort({ createdAt: -1 })
+        .populate('room')
     res.json(
         list,
-        // list.order.ckeckins
-        // ,room
     )
 }
 export const sendMail = async (req, res) => {
@@ -881,6 +881,7 @@ export const calculateBooking = async (req, res) => {
 
             voucherDetails = {
                 code: voucher.code,
+                voucherId: voucher._id,
                 discountType: voucher.discountType,
                 discountValue: voucher.discountValue,
             };
