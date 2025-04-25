@@ -12,9 +12,7 @@ export const getone = async (req, res) => {
     res.json(Cate)
 }
 
-export const detail = async (req, res) => {
-    console.log(req.params);
-    
+export const detail = async (req, res) => {    
     const Cate = await Category.findById({ _id: req.params.id }).exec()
     res.json(Cate)
 }

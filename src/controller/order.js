@@ -14,9 +14,8 @@ export const orderroom = async (req, res) => {
     try {
         let payload = { ...req.body };
         if (typeof payload.voucherCode === "string" && payload.voucherCode.trim() === "") {
-            delete payload.voucherCode; // 👈 Xóa key nếu rỗng
+            delete payload.voucherCode;
         } else {
-            // Nếu có giá trị thì xử lý voucher
             const voucher = await voucher2.findById(payload.voucherCode);
             if (voucher) {
                 voucher.quantity -= 1;
@@ -25,7 +24,7 @@ export const orderroom = async (req, res) => {
                 }
                 await voucher.save();
 
-                payload.voucher = voucher._id; // 👈 Gán ID vào Order
+                payload.voucher = voucher._id;
             }
         }
 
@@ -60,8 +59,21 @@ export const detailorder = async (req, res) => {
 }
 
 export const update = async (req, res) => {
-    const edit = await Order.findOneAndUpdate({ _id: req.params.id }, req.body, { new: true })
+    let body = req.body;
+    if (body && body.voucherCode) {
+        const voucher = await voucher2.findById(body.voucherCode._id);
+        if (voucher) {
+            voucher.quantity += 1;
+            const result = await voucher.save();
+            body.voucherCode = result;
+        }
+    } else {
+        console.log("Không có voucher");
+    }
+    
+    const edit = await Order.findOneAndUpdate({ _id: req.params.id }, body, { new: true })
     res.json(edit)
+    res.json(body)
 }
 
 export const listUser = async (req, res) => {
