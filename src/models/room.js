@@ -1,73 +1,82 @@
+// server/models/room.js
 import mongoose, { Schema, ObjectId } from "mongoose";
 
-const RomSchema = Schema({
+const RoomSchema = Schema(
+  {
     name: {
-        type: String,
-        // required:true,
-        minLength: 5
+      type: String,
+      minLength: 5,
     },
     slug: {
-        type: String,
-        // required:true,
-        lowercase: true,
-        unique: true,
-        index: true
+      type: String,
+      lowercase: true,
+      unique: true,
+      index: true,
     },
     image: {
-        type: [],
+      type: [String],
     },
-    price: [{
-        brand: String, enum: ['overnight', 'daily', 'hourly'],
+    price: [
+      {
+        brand: {
+          type: String,
+          enum: ["overnight", "daily", "hourly"],
+        },
         title: String,
-        value: Number
-    }],
+        value: Number,
+      },
+    ],
     description: {
-        type: String,
-        // required: true,
-        minLength: 5
+      type: String,
+      minLength: 5,
     },
     status: {
-        type: Boolean,
-        default: true
+      type: Boolean,
+      default: true,
     },
     category: {
-        type: ObjectId,
-        ref: "Category"
+      type: ObjectId,
+      ref: "Category",
     },
     date: {
-        type: ObjectId,
-        ref: "dateBooked"
+      type: ObjectId,
+      ref: "dateBooked",
     },
-    facilities:{
+    facilities: [
+      {
         type: ObjectId,
-        ref: "Facilities"
-    }
-}, { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } })
+        ref: "Facilities",
+      },
+    ],
+  },
+  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
+);
 
-// list rating.
-RomSchema.virtual("ratings", {
-    ref: "Comment",
-    foreignField: "room",
-    localField: "_id"
+// List rating
+RoomSchema.virtual("ratings", {
+  ref: "Comment",
+  foreignField: "room",
+  localField: "_id",
 });
 
-RomSchema.pre(/^find/, function (next) {
-    this.populate(["ratings", "listFacility"]);
-    next();
+RoomSchema.pre(/^find/, function (next) {
+  this.populate(["ratings", "listFacility"]);
+  next();
 });
 
-RomSchema.virtual("ratingAvg").get(function () {
-    if (this.ratings) {
-        let totalStar = 0;
-        this.ratings.forEach(item => totalStar += +item.star);
-        return ((totalStar / this.ratings.length) || 0).toFixed(1);
-    }
-})
+RoomSchema.virtual("ratingAvg").get(function () {
+  if (this.ratings && this.ratings.length > 0) {
+    let totalStar = 0;
+    this.ratings.forEach((item) => (totalStar += +item.star));
+    return (totalStar / this.ratings.length).toFixed(1);
+  }
+  return 0;
+});
 
-RomSchema.virtual("listFacility", {
-    ref: "Facilities",
-    foreignField: "room",
-    localField: "_id"
-})
+RoomSchema.virtual("listFacility", {
+  ref: "Facilities",
+  foreignField: "_id",
+  localField: "facilities", // Liên kết với mảng facilities
+});
 
-export default mongoose.model("Room", RomSchema)
+export default mongoose.model("Room", RoomSchema);

@@ -1,17 +1,17 @@
-import mongoose, { Schema, ObjectId } from "mongoose";
-import room from "./room";
+// server/models/Facilities.js
+import mongoose, { Schema } from "mongoose";
 
-const FacilitiesSchema  = Schema({
-    name:{
-        type: String,
-        required: true
+const FacilitiesSchema = Schema(
+  {
+    name: {
+      type: String,
+      required: true,
     },
-    image:{
-        type:String
+    icon: {
+      type: String,
     },
-    room: {
-        type: ObjectId,
-        ref: room
-    }
-},{timestamps:true})
-export default mongoose.model("Facilities", FacilitiesSchema)
+  },
+  { timestamps: true }
+);
+
+export default mongoose.model("Facilities", FacilitiesSchema);

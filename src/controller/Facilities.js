@@ -1,3 +1,4 @@
+import e from "cors"
 import Faci from "../models/Facilities"
 import slugify from "slugify"
 
@@ -35,6 +36,7 @@ export const getAll = async (req, res)=> {
         const getFaci = await Faci.find().exec()
         res.json(getFaci)
     } catch (error) {
+        console.log(error);
         
     }
 }

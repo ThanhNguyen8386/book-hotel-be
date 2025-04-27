@@ -3,8 +3,56 @@ import Room from "../models/room"
 import slugify from 'slugify'
 
 export const getall = async (req, res) => {
-    const list = await Category.find().exec()
-    res.json(list)
+    try {
+        const { page = 1, size = 10, search = '' } = req.query;
+    
+        // Chuyển đổi page và size thành số nguyên
+        const pageNum = parseInt(page);
+        const sizeNum = parseInt(size);
+    
+        // Đảm bảo page và size hợp lệ
+        if (pageNum < 1 || sizeNum < 1) {
+          return res.status(400).json({ message: 'Page and size must be greater than 0' });
+        }
+    
+        // Tạo query tìm kiếm
+        const query = {};
+        if (search) {
+          query.$or = [
+            { name: { $regex: search, $options: 'i' } }, // Tìm kiếm theo name (không phân biệt hoa thường)
+            { address: { $regex: search, $options: 'i' } }, // Tìm kiếm theo address
+          ];
+        }
+    
+        // Tính toán phân trang
+        const totalItems = await Category.countDocuments(query); // Tổng số bản ghi
+        const totalPages = Math.ceil(totalItems / sizeNum); // Tổng số trang
+        const skip = (pageNum - 1) * sizeNum; // Số bản ghi cần bỏ qua
+    
+        // Lấy danh sách danh mục với phân trang và populate
+        const categories = await Category.find(query)
+          .populate('facilities')
+          .populate({
+            path: 'rooms',
+            populate: { path: 'listFacility' },
+          })
+          .skip(skip)
+          .limit(sizeNum)
+          .sort({ createdAt: -1 }); // Sắp xếp theo thời gian tạo (mới nhất trước)
+    
+        // Trả về kết quả
+        res.status(200).json({
+          data: categories,
+          pagination: {
+            totalItems,
+            totalPages,
+            currentPage: pageNum,
+            pageSize: sizeNum,
+          },
+        });
+      } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+      }
 }
 
 export const getone = async (req, res) => {
@@ -23,7 +71,7 @@ export const creat = async (req, res) => {
         const add = await Category(req.body).save()
         res.json(add)
     } catch (error) {
-
+        console.log(error);
     }
 }
 
