@@ -26,7 +26,6 @@ const categoryRoom = Schema(
       type: String,
       default:
         "http://res.cloudinary.com/dkhutgvlb/image/upload/v1739795711/xwfbzfrvi09g0h3sxwfs.jpg",
-      required: true,
     },
     rooms: [
       {

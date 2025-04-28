@@ -1,10 +1,11 @@
 import { Router } from 'express'
-import { creat, detail, getall, getAllCategoryWithImage, getone, read, remove, update } from '../controller/categories'
+import { creat, detail, getall, getAllCategoryWithImage, getCategoryPagination, getone, read, remove, update } from '../controller/categories'
 import { roleMiddleware, verifyToken } from '../middlewares/checkAuth'
 
 const router = Router()
 
-router.get("/categories", getall)
+router.get("/categoryPagination", getCategoryPagination);
+router.get("/categories", getall);
 router.get("/getAllCategoryWithImage", getAllCategoryWithImage)
 router.get("/category/:slug", getone)
 router.get("/categoryDetail/:id", detail)

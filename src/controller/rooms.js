@@ -4,17 +4,60 @@ import slugify from "slugify"
 import DateBooked from "../models/dateBooked"
 import Category from '../models/categories'
 import comments from "../models/comments"
+import Facilities from "../models/Facilities"
 
 
 export const creat = async (req, res) => {
     req.body.slug = slugify(req.body.name)
 
     try {
-        const add = await Room(req.body).save()
-        res.json(add)
-    } catch (error) {
-        console.log(error);
+        const { name, image, price, description, status, category } = req.body;
 
+        if (!name || !category) {
+            return res.status(400).json({ message: 'Name, slug, and category are required' });
+        }
+
+        const categoryDoc = await Category.findById(category).populate('facilities');
+        if (!categoryDoc) {
+            return res.status(404).json({ message: 'Category not found' });
+        }
+
+        // if (!Array.isArray(facilities)) {
+        //     return res.status(400).json({ message: 'Facilities must be an array' });
+        // }
+
+        // const categoryFacilities = categoryDoc.facilities.map((f) => f._id.toString());
+        // const invalidFacilities = facilities.filter((f) => !categoryFacilities.includes(f));
+        // if (invalidFacilities.length > 0) {
+        //     return res.status(400).json({ message: 'Some facilities are not available in this category' });
+        // }
+
+        // const facilityDocs = await Facilities.find({ _id: { $in: facilities } });
+        // if (facilityDocs.length !== facilities.length) {
+        //     return res.status(400).json({ message: 'One or more facilities not found' });
+        // }
+
+        const newRoom = new Room({
+            name,
+            image: image || [],
+            price: price || [],
+            description: description || '',
+            status: status !== undefined ? status : true,
+            category,
+            // facilities,
+        });
+        await newRoom.save();
+
+        categoryDoc.rooms.push(newRoom._id);
+        await categoryDoc.save();
+
+        const populatedRoom = await Room.findById(newRoom._id).populate('category listFacility');
+        res.status(201).json(populatedRoom);
+    } catch (error) {
+        if (error.code === 11000) {
+            return res.status(400).json({ message: 'Room slug already exists' });
+        }
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 }
 export const getAll = async (req, res) => {

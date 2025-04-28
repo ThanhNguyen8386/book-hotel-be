@@ -2,7 +2,7 @@ import Category from '../models/categories'
 import Room from "../models/room"
 import slugify from 'slugify'
 
-export const getall = async (req, res) => {
+export const getCategoryPagination = async (req, res) => {
     try {
         const { page = 1, size = 10, search = '' } = req.query;
     
@@ -50,6 +50,15 @@ export const getall = async (req, res) => {
             pageSize: sizeNum,
           },
         });
+      } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+      }
+}
+
+export const getall = async (req, res) => {
+    try {
+        const result = await Category.find()
+        res.json(result)
       } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
       }
