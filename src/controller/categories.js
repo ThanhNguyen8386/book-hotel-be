@@ -70,7 +70,7 @@ export const getone = async (req, res) => {
 }
 
 export const detail = async (req, res) => {    
-    const Cate = await Category.findById({ _id: req.params.id }).exec()
+    const Cate = await Category.findById({ _id: req.params.id }).populate('facilities')
     res.json(Cate)
 }
 

@@ -39,6 +39,9 @@ const categoryRoom = Schema(
         ref: "Facilities",
       },
     ],
+    type: {
+      type:String,
+    }
   },
   { timestamps: true }
 );

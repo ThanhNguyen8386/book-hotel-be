@@ -8,10 +8,8 @@ import Facilities from "../models/Facilities"
 
 
 export const creat = async (req, res) => {
-    req.body.slug = slugify(req.body.name)
-
     try {
-        const { name, image, price, description, status, category } = req.body;
+        const { name, image, price, description, status, category, facilities } = req.body;
 
         if (!name || !category) {
             return res.status(400).json({ message: 'Name, slug, and category are required' });
@@ -22,29 +20,30 @@ export const creat = async (req, res) => {
             return res.status(404).json({ message: 'Category not found' });
         }
 
-        // if (!Array.isArray(facilities)) {
-        //     return res.status(400).json({ message: 'Facilities must be an array' });
-        // }
+        if (!Array.isArray(facilities)) {
+            return res.status(400).json({ message: 'Facilities must be an array' });
+        }
 
-        // const categoryFacilities = categoryDoc.facilities.map((f) => f._id.toString());
-        // const invalidFacilities = facilities.filter((f) => !categoryFacilities.includes(f));
-        // if (invalidFacilities.length > 0) {
-        //     return res.status(400).json({ message: 'Some facilities are not available in this category' });
-        // }
+        const categoryFacilities = categoryDoc.facilities.map((f) => f._id.toString());
+        const invalidFacilities = facilities.filter((f) => !categoryFacilities.includes(f));
+        if (invalidFacilities.length > 0) {
+            return res.status(400).json({ message: 'Some facilities are not available in this category' });
+        }
 
-        // const facilityDocs = await Facilities.find({ _id: { $in: facilities } });
-        // if (facilityDocs.length !== facilities.length) {
-        //     return res.status(400).json({ message: 'One or more facilities not found' });
-        // }
+        const facilityDocs = await Facilities.find({ _id: { $in: facilities } });
+        if (facilityDocs.length !== facilities.length) {
+            return res.status(400).json({ message: 'One or more facilities not found' });
+        }
 
         const newRoom = new Room({
             name,
+            slug: slugify(req.body.name),
             image: image || [],
             price: price || [],
             description: description || '',
             status: status !== undefined ? status : true,
             category,
-            // facilities,
+            facilities,
         });
         await newRoom.save();
 
