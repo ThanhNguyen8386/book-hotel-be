@@ -92,11 +92,37 @@ export const remove = async (req, res) => {
 
 export const update = async (req, res) => {
     try {
-        const newRoom = await Room.findOneAndUpdate({ _id: req.params.id }, req.body, { new: true }).exec()
-        console.log(newRoom);
-        res.json(newRoom)
+        const { name, status, address, image, facilities } = req.body;
+
+        const category = await Category.findById(req.params.id);
+        if (!category) {
+            return res.status(404).json({ message: 'Category not found' });
+        }
+
+        // Cập nhật thông tin danh mục
+        if (name) category.name = name;
+        if (status !== undefined) category.status = status;
+        if (address) category.address = address;
+        if (image) category.image = image;
+
+        // Cập nhật danh sách tiện ích
+        if (Array.isArray(facilities)) {
+            const facilityDocs = await Facilities.find({ _id: { $in: facilities } });
+            if (facilityDocs.length !== facilities.length) {
+                return res.status(400).json({ message: 'One or more facilities not found' });
+            }
+            category.facilities = facilities;
+        }
+
+        await category.save();
+
+        const populatedCategory = await Category.findById(category._id).populate('facilities');
+        res.status(200).json(populatedCategory);
     } catch (error) {
-        console.log(error);
+        if (error.code === 11000) {
+            return res.status(400).json({ message: 'Category slug already exists' });
+        }
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 }
 

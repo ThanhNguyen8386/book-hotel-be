@@ -40,8 +40,11 @@ const categoryRoom = Schema(
       },
     ],
     type: {
-      type:String,
-    }
+      type: String,
+    },
+    introduction: {
+      type: String,
+    },
   },
   { timestamps: true }
 );
