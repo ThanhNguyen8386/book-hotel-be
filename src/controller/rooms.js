@@ -193,7 +193,7 @@ export const read = async (req, res) => {
 
 export const getRoomByCategory = async (req, res) => {
     try {
-        const { _id, slug, name, address } = await Category.findOne({ slug: req.params.slug });
+        const { _id, slug, name, address, introduction } = await Category.findOne({ slug: req.params.slug });
         const roomByCategory = await Room.find({
             category: _id,
             status: true
@@ -225,7 +225,8 @@ export const getRoomByCategory = async (req, res) => {
             slug: slug,
             _id: _id,
             roomList: roomByCategory,
-            reviews: reviews
+            reviews: reviews,
+            introduction: introduction
         }
         res.json(data)
     } catch (error) {

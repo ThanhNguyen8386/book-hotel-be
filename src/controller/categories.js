@@ -118,7 +118,7 @@ export const creat = async (req, res) => {
 
 export const update = async (req, res) => {
     try {
-        const { name, status, address, image, facilities } = req.body;
+        const { name, status, address, image, facilities, introduction } = req.body;
 
         const category = await Category.findById(req.params.id);
         if (!category) {
@@ -131,6 +131,7 @@ export const update = async (req, res) => {
         if (address) category.address = address;
         if (image) category.image = image;
         category.slug = slugify(name);
+        if (introduction) category.introduction = introduction;
 
         // Cập nhật danh sách tiện ích
         if (Array.isArray(facilities)) {

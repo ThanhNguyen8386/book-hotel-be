@@ -66,6 +66,9 @@ export const verifyToken = (req, res, next) => {
 
 export const roleMiddleware = (roles) => {
   return (req, res, next) => {
+    console.log(req.user.role)
+    console.log(roles);
+    
     if (roles.includes(req.user.role)) {
       next();
     }
