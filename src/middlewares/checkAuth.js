@@ -58,6 +58,7 @@ export const verifyToken = (req, res, next) => {
         }
         return res.status(403).json({ message: "Token không hợp lệ" })
       }
+      
       req.user = decoded
     })
     next()
@@ -66,10 +67,8 @@ export const verifyToken = (req, res, next) => {
 
 export const roleMiddleware = (roles) => {
   return (req, res, next) => {
-    console.log(req.user.role)
-    console.log(roles);
     
-    if (roles.includes(req.user.role)) {
+    if (roles.includes(Number(req.user.role))) {
       next();
     }
     else return res.status(403).json({ message: 'Access denied' });
@@ -77,9 +76,9 @@ export const roleMiddleware = (roles) => {
 };
 
 export const generateAccessToken = (user) => {
-  return jwt.sign(user, "Happyweekend", { expiresIn: '1m' })  // Token hết hạn sau 15 phút
+  return jwt.sign(user, "Happyweekend", { expiresIn: '15m' }) 
 }
 
 export const generateRefreshToken = (user) => {
-  return jwt.sign(user, "Happyweekend", { expiresIn: '7d' })  // Refresh Token có hiệu lực 7 ngày
+  return jwt.sign(user, "Happyweekend", { expiresIn: '7d' }) 
 }

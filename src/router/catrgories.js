@@ -4,7 +4,7 @@ import { roleMiddleware, verifyToken } from '../middlewares/checkAuth'
 
 const router = Router()
 
-router.get("/categoryPagination", getCategoryPagination);
+router.get("/categoryPagination", verifyToken, roleMiddleware([1]), getCategoryPagination);
 router.get("/categories", getall);
 router.get("/getAllCategoryWithImage", getAllCategoryWithImage)
 router.get("/category/:slug", getone)
