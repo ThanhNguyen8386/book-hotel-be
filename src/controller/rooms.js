@@ -193,7 +193,8 @@ export const read = async (req, res) => {
 
 export const getRoomByCategory = async (req, res) => {
     try {
-        const { _id, slug, name, address, introduction } = await Category.findOne({ slug: req.params.slug });
+        const { _id, slug, name, address, introduction, facilities } = await Category.findOne({ slug: req.params.slug }).populate('facilities').lean()
+        ;
         const roomByCategory = await Room.find({
             category: _id,
             status: true
@@ -218,6 +219,7 @@ export const getRoomByCategory = async (req, res) => {
         }, 0)
         const data = {
             listRatings: listRatings,
+            facilities: facilities,
             rating: rating,
             address: address,
             images: listImageRoom,
